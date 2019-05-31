@@ -1,0 +1,5 @@
+node_modules/
+**/local.js
+tsc-out
+gcf-package.zip
+.vscode

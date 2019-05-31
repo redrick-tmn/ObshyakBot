@@ -1,0 +1,36 @@
+{
+  "name": "obshyakbot",
+  "version": "1.2.1",
+  "description": "Obshyak bot",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "lint": "tslint --project .",
+    "package-zip-win": "yarn build && powershell Compress-Archive -Force -Path tsc-out/*, package.json, .gcloudignore -DestinationPath gcf-package.zip"
+  },
+  "repository": {
+    "url": "https://github.com/redrick-tmn/ObshyakBot",
+    "type": "git"
+  },
+  "author": "Dmitriy Kostyanetskiy",
+  "contributors": [
+    {
+      "email": "redrick.tmn@gmail.com",
+      "name": "Dmitriy Kostyanetskiy",
+      "url": "https://github.com/redrick-tmn"
+    }
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.19.0",
+    "firebase": "^6.1.0",
+    "lodash": "^4.17.11",
+    "moment": "^2.24.0"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.133",
+    "tslint": "^5.17.0",
+    "tslint-consistent-codestyle": "^1.15.1",
+    "typescript": "^3.5.1"
+  }
+}
