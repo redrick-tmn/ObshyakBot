@@ -3,7 +3,6 @@ import * as moment from 'moment';
 import config from '../config';
 import { Expense } from '../storage';
 import { ChatType, Message, MessageEntity, MessageEntityType } from '../telegram';
-import { notRecognizedMessage } from '../text';
 
 const { endOfPeriodDay } = config;
 
@@ -53,13 +52,15 @@ export function parseRecord(botName: string, message: Message): { amount: number
 
 function parseRecordText(recordText: string): { amount: number, comment?: string } {
   if (!recordText) {
+    console.log(`[parseRecordText] Record text is empty`);
     return {
       amount: NaN
     };
   }
 
-  const regexResult = new RegExp(/^([\-\+]?\d*)(\s(.*))?$/, 'g').exec(recordText);
+  const regexResult = new RegExp(/^([\-\+]?\d*)(\s(.*))?$/, 'g').exec(recordText.trim());
   if (!regexResult) {
+    console.log(`[parseRecordText] Record text has not passed regex`);
     return {
       amount: NaN
     };
@@ -68,6 +69,7 @@ function parseRecordText(recordText: string): { amount: number, comment?: string
   const amount = parseInt(regexResult[1], 10);
 
   if (!_.isInteger(amount)) {
+    console.log(`[parseRecordText] Record text is not integer`);
     return {
       amount: NaN
     };

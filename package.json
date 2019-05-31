@@ -1,12 +1,12 @@
 {
   "name": "obshyakbot",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Obshyak bot",
   "main": "index.js",
   "scripts": {
     "build": "tsc",
     "lint": "tslint --project .",
-    "package-zip-win": "powershell Compress-Archive -Force -Path tsc-out/*, package.json, .gcloudignore -DestinationPath gcf-package.zip"
+    "package": "powershell Compress-Archive -Force -Path tsc-out/*, package.json, .gcloudignore -DestinationPath gcf-package.zip"
   },
   "repository": {
     "url": "https://github.com/redrick-tmn/ObshyakBot",

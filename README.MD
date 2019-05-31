@@ -9,7 +9,7 @@ Implemented as [Google Cloud Function](https://cloud.google.com/functions/)
 ```
 yarn install
 yarn build
-yarn package-zip-win
+yarn package
 ```
 
 The archive `gcf-package.zip` then should be deployed through Google Cloud Console.
