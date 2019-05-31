@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "lint": "tslint --project .",
-    "package-zip-win": "yarn build && powershell Compress-Archive -Force -Path tsc-out/*, package.json, .gcloudignore -DestinationPath gcf-package.zip"
+    "package-zip-win": "powershell Compress-Archive -Force -Path tsc-out/*, package.json, .gcloudignore -DestinationPath gcf-package.zip"
   },
   "repository": {
     "url": "https://github.com/redrick-tmn/ObshyakBot",
