@@ -7,7 +7,7 @@ import { ChatType, Message, MessageEntity, MessageEntityType } from '../telegram
 const { endOfPeriodDay } = config;
 
 export function isInPeriod(expense: Expense): boolean {
-  return moment(expense.date).isBetween(...getCurrentPeriod());
+  return expense && moment(expense.date).isBetween(...getCurrentPeriod());
 }
 
 export function getCurrentPeriod(): [moment.Moment, moment.Moment] {
@@ -17,7 +17,7 @@ export function getCurrentPeriod(): [moment.Moment, moment.Moment] {
   }
 
   const start = result.date(endOfPeriodDay).startOf('day');
-  const end = start.clone().add(1, 'month').endOf('day');
+  const end = start.clone().add(1, 'month').startOf('day');
 
   return [start, end];
 }

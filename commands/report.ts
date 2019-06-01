@@ -32,8 +32,8 @@ function owes(
 ): [number, number] {
   const part = Math.round((bucket1Total + bucket2Total) / (bucket1Count + bucket2Count));
 
-  const bucket1Owes = part * bucket1Count - bucket1Total;
-  const bucket2Owes = part * bucket2Count - bucket2Total;
+  const bucket1Owes = Math.max(part * bucket1Count - bucket1Total, 0);
+  const bucket2Owes = Math.max(part * bucket2Count - bucket2Total, 0);
 
   return [bucket1Owes, bucket2Owes];
 }

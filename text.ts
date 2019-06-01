@@ -3,7 +3,7 @@ import * as moment from 'moment';
 import { getCurrentPeriod } from './commands/common';
 import { Expense } from './storage';
 
-const DEFAULT_FORMAT = 'DD.MM.YYYY';
+const DEFAULT_FORMAT = 'DD.MM.YYYY hh:mm';
 
 export function reportMessage(
   [bucket1Users, bucket2Users]: [string[], string[]],
