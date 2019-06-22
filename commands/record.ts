@@ -3,7 +3,8 @@ import config from '../config';
 import { User } from '../storage';
 import { Message } from '../telegram';
 import { addRecordMessage, editRecordMessage, notRecognizedMessage } from '../text';
-import { isInPeriod, parseRecord } from './common';
+import { getRecordText, isInPeriod, parseRecordText } from './common';
+import { NoReplayResult, ReplayToChatResult, Result } from './result';
 
 const { botName } = config;
 
@@ -11,51 +12,56 @@ export async function handleAddRecord(
   message: Message,
   getUser: (username: string) => Promise<User>,
   setUser: (username: string, user: User) => Promise<void>
-): Promise<string> {
-  const record = parseRecord(botName, message);
+): Promise<Result> {
+  const recordText = getRecordText(botName, message);
+  if (!recordText) {
+    return new NoReplayResult();
+  }
 
+  const record = parseRecordText(recordText);
   if (!record) {
-    return null;
+    return new ReplayToChatResult(
+      notRecognizedMessage(),
+      message.chat.id
+    );
   }
 
-  if (_.isNaN(record.amount)) {
-    return notRecognizedMessage();
-  }
-
-  console.log(`[handleAddRecord] Record parsed ${JSON.stringify(record)}`);
-
-  const { message_id: messageId, chat: { id: chatId }, from: { username } } = message;
-
-  const user = await getUser(username);
+  const user = await getUser(message.from.username);
 
   user.expenses.push({
     amount: record.amount,
     comment: record.comment,
-    chatId,
-    messageId,
+    chatId: message.chat.id,
+    messageId: message.message_id,
     date: Date.now()
   });
 
-  await setUser(username, user);
+  await setUser(message.from.username, user);
 
   const total = _(user.expenses).filter(isInPeriod).sumBy(item => item.amount);
 
-  return addRecordMessage(record.amount, record.comment, total);
+  return new ReplayToChatResult(
+    addRecordMessage(record.amount, record.comment, total),
+    message.chat.id
+  );
 }
 
 export async function handleEditRecord(
   message: Message,
   getUser: (username: string) => Promise<User>,
   setUser: (username: string, user: User) => Promise<void>
-): Promise<string> {
-  const record = parseRecord(botName, message);
-
-  if (!record) {
-    return null;
+): Promise<Result> {
+  const recordText = getRecordText(botName, message);
+  if (!recordText) {
+    return new NoReplayResult();
   }
 
-  if (_.isNaN(record.amount)) {
-    return notRecognizedMessage();
+  const record = parseRecordText(recordText);
+  if (!record) {
+    return new ReplayToChatResult(
+      notRecognizedMessage(),
+      message.chat.id
+    );
   }
 
   const { message_id: messageId, chat: { id: chatId }, from: { username } } = message;
@@ -73,5 +79,8 @@ export async function handleEditRecord(
 
   const total = _(user.expenses).filter(isInPeriod).sumBy(item => item.amount);
 
-  return editRecordMessage(record.amount, record.comment, oldAmount, oldComment, total);
+  return new ReplayToChatResult(
+    editRecordMessage(record.amount, record.comment, oldAmount, oldComment, total),
+    message.chat.id
+  );
 }

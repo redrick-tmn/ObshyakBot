@@ -1,19 +1,22 @@
 import * as _ from 'lodash';
 
 import { handleUpdate } from './commands';
+import { ReplayToChatResult } from './commands/result';
 import { sendMessage } from './messaging';
 import { Update } from './telegram';
 
-export async function main(req, res) {
+export async function main(req, res): Promise<void> {
   try {
-    if (req.body) {
-      const update = <Update>req.body;
-      console.log(JSON.stringify(update));
+    const update = <Update>req.body;
+    if (!update) {
+      res.sendStatus(200);
+      return;
+    }
 
-      const replay = await handleUpdate(update);
-      if (replay) {
-        await sendMessage(replay);
-      }
+    const result = await handleUpdate(update);
+
+    if (result instanceof ReplayToChatResult) {
+      await sendMessage(result.text, result.chatId);
     }
 
     res.sendStatus(200);

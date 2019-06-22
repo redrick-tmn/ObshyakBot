@@ -1,14 +1,17 @@
 import * as _ from 'lodash';
 import { Dictionary } from 'lodash';
 import { User } from '../storage';
+import { Message } from '../telegram';
 import { reportMessage } from '../text';
 import { isInPeriod } from './common';
+import { ReplayToChatResult, Result } from './result';
 
 export async function handleReportCommand(
+  message: Message,
   bucket1Users: string[],
   bucket2Users: string[],
   getUsers: (usernames: string[]) => Promise<Dictionary<User>>
-) {
+): Promise<Result> {
   const users = await getUsers([...bucket1Users, ...bucket2Users]);
 
   const bucket1 = _.pick(users, bucket1Users);
@@ -16,7 +19,7 @@ export async function handleReportCommand(
 
   const totals: [number, number] = [total(bucket1), total(bucket2)];
 
-  return reportMessage(
+  const text = reportMessage(
     [bucket1Users, bucket2Users],
     totals,
     owes(
@@ -24,6 +27,8 @@ export async function handleReportCommand(
       totals
     )
   );
+
+  return new ReplayToChatResult(text, message.chat.id);
 }
 
 function owes(

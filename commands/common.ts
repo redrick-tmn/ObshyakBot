@@ -39,40 +39,18 @@ export function getFirstCommand(botName: string, message: Message): string {
   return firstCommand.replace(`@${botName}`, '');
 }
 
-export function parseRecord(botName: string, message: Message): { amount: number, comment?: string } {
-  const recordText = getRecordText(botName, message);
-  if (!recordText) {
-    return null;
-  }
-
-  console.log(`[parseRecord] Record text is ${recordText}`);
-
-  return parseRecordText(recordText);
-}
-
-function parseRecordText(recordText: string): { amount: number, comment?: string } {
-  if (!recordText) {
-    console.log(`[parseRecordText] Record text is empty`);
-    return {
-      amount: NaN
-    };
-  }
-
+export function parseRecordText(recordText: string): { amount: number, comment?: string } {
   const regexResult = new RegExp(/^([\-\+]?\d*)(\s(.*))?$/, 'g').exec(recordText.trim());
   if (!regexResult) {
-    console.log(`[parseRecordText] Record text has not passed regex`);
-    return {
-      amount: NaN
-    };
+    console.log(`Record text has not passed regex`);
+    return null;
   }
 
   const amount = parseInt(regexResult[1], 10);
 
   if (!_.isInteger(amount)) {
     console.log(`[parseRecordText] Record text is not integer`);
-    return {
-      amount: NaN
-    };
+    return null;
   }
 
   return {
@@ -81,20 +59,18 @@ function parseRecordText(recordText: string): { amount: number, comment?: string
   };
 }
 
-function getRecordText(botName: string, message: Message): string {
+export function getRecordText(botName: string, message: Message): string {
   if (message.chat.type === ChatType.Private) {
     return message.text;
   }
 
   const firstMention = getFirstMention(botName, message);
 
-  console.log(`[getRecordText] First mention found is ${firstMention}`);
-
   if (firstMention) {
     return message.text.slice(firstMention.offset + firstMention.length + 1);
+  } else {
+    return null;
   }
-
-  return null;
 }
 
 function getFirstMention(botName: string, message: Message): MessageEntity {

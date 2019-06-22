@@ -23,14 +23,14 @@
   "license": "MIT",
   "dependencies": {
     "axios": "^0.19.0",
-    "firebase": "^6.1.0",
+    "firebase": "^6.2.2",
     "lodash": "^4.17.11",
     "moment": "^2.24.0"
   },
   "devDependencies": {
-    "@types/lodash": "^4.14.133",
-    "tslint": "^5.17.0",
+    "@types/lodash": "^4.14.134",
+    "tslint": "^5.18.0",
     "tslint-consistent-codestyle": "^1.15.1",
-    "typescript": "^3.5.1"
+    "typescript": "^3.5.2"
   }
 }

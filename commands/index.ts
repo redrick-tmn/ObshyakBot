@@ -1,5 +1,4 @@
 import config from '../config';
-import { ReplayMessage } from '../messaging';
 import { getUser, getUsers, setUser } from '../storage';
 import { Message, Update } from '../telegram';
 import { handleAccountCommand } from './account';
@@ -7,69 +6,73 @@ import { getFirstCommand } from './common';
 import { handleHelloCommand } from './hello';
 import { handleAddRecord, handleEditRecord } from './record';
 import { handleReportCommand } from './report';
+import { NoReplayResult, Result } from './result';
 
 const { botName, buckets: [bucket1Users, bucket2Users] } = config;
 
-export async function handleUpdate(update: Update): Promise<ReplayMessage> {
-  if (!update) {
-    console.log('[handleUpdate] Update is undefined');
-    return null;
+function validateMessage(message: Message): boolean {
+  if (!message.from || !message.from.username) {
+    console.warn('Username is not set');
+
+    return false;
   }
 
+  if (!message.chat || !message.chat.id) {
+    console.warn('Chat id is not set');
+
+    return false;
+  }
+
+  return true;
+}
+
+export class CommandHandlingError extends Error {
+  constructor(message?: string) {
+    super(message);
+
+    Object.setPrototypeOf(this, CommandHandlingError.prototype);
+  }
+}
+export async function handleUpdate(update: Update): Promise<Result> {
   const { message, edited_message: editedMessage } = update;
 
   if (message) {
     return handleMessage(message);
-  }
-
-  if (editedMessage) {
+  } else if (editedMessage) {
     return handleEditedMessage(editedMessage);
+  } else {
+    return new NoReplayResult();
+  }
+}
+
+async function handleMessage(message: Message): Promise<Result> {
+  if (!validateMessage(message)) {
+    return new NoReplayResult();
   }
 
-  console.log('[handleUpdate] no message or edited_message');
-  return null;
+  return handleCommand(message);
 }
 
-async function handleMessage(message: Message): Promise<ReplayMessage> {
-  return toReplay(
-    await handleCommand(message) || await handleAddRecord(message, getUser, setUser),
-    message
-  );
+async function handleEditedMessage(message: Message): Promise<Result> {
+  if (!validateMessage(message)) {
+    return new NoReplayResult();
+  }
+
+  return handleEditRecord(message, getUser, setUser);
 }
 
-async function handleEditedMessage(message: Message): Promise<ReplayMessage> {
-  return toReplay(await handleEditRecord(message, getUser, setUser), message);
-}
-
-async function handleCommand(message: Message): Promise<string> {
+async function handleCommand(message: Message): Promise<Result> {
   const firstCommand = getFirstCommand(botName, message);
-
-  console.log(`[handleCommand] Fist command found is ${firstCommand}`);
 
   switch (firstCommand) {
     case '/start':
     case '/help':
-      return handleHelloCommand();
+      return handleHelloCommand(message);
     case '/report':
-      return handleReportCommand(bucket1Users, bucket2Users, getUsers);
+      return handleReportCommand(message, bucket1Users, bucket2Users, getUsers);
     case '/list':
-      return handleAccountCommand(message.from.username, getUser);
+      return handleAccountCommand(message, getUser);
     default:
-      return null;
+      return handleAddRecord(message, getUser, setUser);
   }
-}
-
-async function toReplay(replayText: string, message: Message): Promise<ReplayMessage> {
-  if (!replayText) {
-    return null;
-  }
-
-  const result = {
-    chatId: message.chat.id,
-    text: replayText
-  };
-
-  console.log(`[toReplay] Replay is ${JSON.stringify(result)}`);
-
-  return result;
 }
