@@ -1,14 +1,16 @@
-import { User } from '../storage';
+import { Storage } from '../storage';
 import { Message } from '../telegram';
 import { accountMessage } from '../text';
 import { isInPeriod } from './common';
-import { NoReplayResult, ReplayToChatResult, Result } from './result';
+import { ReplayToChatResult, Result } from './result';
 
 export async function handleAccountCommand(
   message: Message,
-  getUser: (username: string) => Promise<User>
+  storage: Storage
 ): Promise<Result> {
-  const { expenses } = await getUser(message.from.username);
+  const { expenses } = await storage.getUser(message.from.username);
+  const period = await storage.getCurrentPeriodStart();
+  const expensesInPeriod = expenses.filter(item => isInPeriod(item, period));
 
-  return new ReplayToChatResult(accountMessage(expenses.filter(isInPeriod)), message.chat.id);
+  return new ReplayToChatResult(accountMessage(expensesInPeriod), message.chat.id);
 }

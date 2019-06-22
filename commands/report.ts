@@ -1,23 +1,25 @@
 import * as _ from 'lodash';
 import { Dictionary } from 'lodash';
-import { User } from '../storage';
+import config from '../config';
+import { Storage, User } from '../storage';
 import { Message } from '../telegram';
 import { reportMessage } from '../text';
 import { isInPeriod } from './common';
 import { ReplayToChatResult, Result } from './result';
 
+const { buckets: [bucket1Users, bucket2Users] } = config;
+
 export async function handleReportCommand(
   message: Message,
-  bucket1Users: string[],
-  bucket2Users: string[],
-  getUsers: (usernames: string[]) => Promise<Dictionary<User>>
+  storage: Storage,
+  periodStart: Date
 ): Promise<Result> {
-  const users = await getUsers([...bucket1Users, ...bucket2Users]);
+  const users = await storage.getUsers([...bucket1Users, ...bucket2Users]);
 
   const bucket1 = _.pick(users, bucket1Users);
   const bucket2 = _.pick(users, bucket2Users);
 
-  const totals: [number, number] = [total(bucket1), total(bucket2)];
+  const totals: [number, number] = [total(bucket1, periodStart), total(bucket2, periodStart)];
 
   const text = reportMessage(
     [bucket1Users, bucket2Users],
@@ -25,7 +27,8 @@ export async function handleReportCommand(
     owes(
       [bucket1Users.length, bucket2Users.length],
       totals
-    )
+    ),
+    periodStart
   );
 
   return new ReplayToChatResult(text, message.chat.id);
@@ -43,10 +46,10 @@ function owes(
   return [bucket1Owes, bucket2Owes];
 }
 
-function total(bucket: Dictionary<User>): number {
+function total(bucket: Dictionary<User>, periodStartDate: Date): number {
   return _(bucket)
     .map<User>(item => item)
     .flatMap(item => item.expenses)
-    .filter(isInPeriod)
+    .filter(item => isInPeriod(item, periodStartDate))
     .sumBy(item => item.amount);
 }

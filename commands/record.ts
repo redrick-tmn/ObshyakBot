@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import config from '../config';
-import { User } from '../storage';
+import { Storage } from '../storage';
 import { Message } from '../telegram';
 import { addRecordMessage, editRecordMessage, notRecognizedMessage } from '../text';
 import { getRecordText, isInPeriod, parseRecordText } from './common';
@@ -10,8 +10,7 @@ const { botName } = config;
 
 export async function handleAddRecord(
   message: Message,
-  getUser: (username: string) => Promise<User>,
-  setUser: (username: string, user: User) => Promise<void>
+  storage: Storage
 ): Promise<Result> {
   const recordText = getRecordText(botName, message);
   if (!recordText) {
@@ -26,7 +25,7 @@ export async function handleAddRecord(
     );
   }
 
-  const user = await getUser(message.from.username);
+  const user = await storage.getUser(message.from.username);
 
   user.expenses.push({
     amount: record.amount,
@@ -36,9 +35,10 @@ export async function handleAddRecord(
     date: Date.now()
   });
 
-  await setUser(message.from.username, user);
+  await storage.setUser(message.from.username, user);
 
-  const total = _(user.expenses).filter(isInPeriod).sumBy(item => item.amount);
+  const period = await storage.getCurrentPeriodStart();
+  const total = _(user.expenses).filter(item => isInPeriod(item, period)).sumBy(item => item.amount);
 
   return new ReplayToChatResult(
     addRecordMessage(record.amount, record.comment, total),
@@ -48,8 +48,7 @@ export async function handleAddRecord(
 
 export async function handleEditRecord(
   message: Message,
-  getUser: (username: string) => Promise<User>,
-  setUser: (username: string, user: User) => Promise<void>
+  storage: Storage
 ): Promise<Result> {
   const recordText = getRecordText(botName, message);
   if (!recordText) {
@@ -66,7 +65,7 @@ export async function handleEditRecord(
 
   const { message_id: messageId, chat: { id: chatId }, from: { username } } = message;
 
-  const user = await getUser(username);
+  const user = await storage.getUser(username);
   const expense = user.expenses.find(item => item.chatId === chatId && item.messageId === messageId);
   const oldAmount = expense.amount;
   const oldComment = expense.comment;
@@ -75,9 +74,10 @@ export async function handleEditRecord(
     expense.comment = record.comment;
   }
 
-  await setUser(username, user);
+  await storage.setUser(username, user);
 
-  const total = _(user.expenses).filter(isInPeriod).sumBy(item => item.amount);
+  const period = await storage.getCurrentPeriodStart();
+  const total = _(user.expenses).filter(item => isInPeriod(item, period)).sumBy(item => item.amount);
 
   return new ReplayToChatResult(
     editRecordMessage(record.amount, record.comment, oldAmount, oldComment, total),

@@ -1,20 +1,23 @@
 import * as _ from 'lodash';
 import * as moment from 'moment';
-import { getCurrentPeriod } from './commands/common';
 import { Expense } from './storage';
 
 const DEFAULT_FORMAT = 'DD.MM.YYYY hh:mm';
 
+export function periodClose(periodStartDate: Date, periodEndDate: Date): string {
+  return `Отчетный период c ${moment(periodStartDate).format(DEFAULT_FORMAT)} по ${moment(periodEndDate).format(DEFAULT_FORMAT)} закрыт`;
+}
+
 export function reportMessage(
   [bucket1Users, bucket2Users]: [string[], string[]],
   [bucket1Total, bucket2Total]: [number, number],
-  [bucket1Owes, bucket2Owes]: [number, number]
+  [bucket1Owes, bucket2Owes]: [number, number],
+  periodStartDate: Date
 ): string {
   const bucket1Names = joinUserNames(bucket1Users);
   const bucket2Names = joinUserNames(bucket2Users);
-  const [start, end] = getCurrentPeriod();
 
-  return `Отчетный период: ${start.format(DEFAULT_FORMAT)} - ${end.format(DEFAULT_FORMAT)}
+  return `Начало отчетного периода: ${moment(periodStartDate).format(DEFAULT_FORMAT)}
 Всего потрачено: ${bucket1Total + bucket2Total} р.
 
 Траты:
@@ -44,7 +47,7 @@ ${amount} р.${comment ? ` - ${comment}` : ''}
 Всего потрачено за этот отчетный период: ${total} р.`;
 }
 
-export function accountMessage( expenses: Expense[]): string {
+export function accountMessage(expenses: Expense[]): string {
   if (!expenses.length) {
     return `Пока ничего не потрачено`;
   }

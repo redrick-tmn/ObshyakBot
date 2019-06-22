@@ -1,14 +1,15 @@
 import config from '../config';
-import { getUser, getUsers, setUser } from '../storage';
+import { Storage } from '../storage';
 import { Message, Update } from '../telegram';
 import { handleAccountCommand } from './account';
+import { handleClosePeriod } from './close-period';
 import { getFirstCommand } from './common';
 import { handleHelloCommand } from './hello';
 import { handleAddRecord, handleEditRecord } from './record';
 import { handleReportCommand } from './report';
 import { NoReplayResult, Result } from './result';
 
-const { botName, buckets: [bucket1Users, bucket2Users] } = config;
+const { botName } = config;
 
 function validateMessage(message: Message): boolean {
   if (!message.from || !message.from.username) {
@@ -26,42 +27,35 @@ function validateMessage(message: Message): boolean {
   return true;
 }
 
-export class CommandHandlingError extends Error {
-  constructor(message?: string) {
-    super(message);
-
-    Object.setPrototypeOf(this, CommandHandlingError.prototype);
-  }
-}
-export async function handleUpdate(update: Update): Promise<Result> {
+export async function handleUpdate(update: Update, storage: Storage): Promise<Result> {
   const { message, edited_message: editedMessage } = update;
 
   if (message) {
-    return handleMessage(message);
+    return handleMessage(message, storage);
   } else if (editedMessage) {
-    return handleEditedMessage(editedMessage);
+    return handleEditedMessage(editedMessage, storage);
   } else {
     return new NoReplayResult();
   }
 }
 
-async function handleMessage(message: Message): Promise<Result> {
+async function handleMessage(message: Message, storage: Storage): Promise<Result> {
   if (!validateMessage(message)) {
     return new NoReplayResult();
   }
 
-  return handleCommand(message);
+  return handleCommand(message, storage);
 }
 
-async function handleEditedMessage(message: Message): Promise<Result> {
+async function handleEditedMessage(message: Message, storage: Storage): Promise<Result> {
   if (!validateMessage(message)) {
     return new NoReplayResult();
   }
 
-  return handleEditRecord(message, getUser, setUser);
+  return handleEditRecord(message, storage);
 }
 
-async function handleCommand(message: Message): Promise<Result> {
+async function handleCommand(message: Message, storage: Storage): Promise<Result> {
   const firstCommand = getFirstCommand(botName, message);
 
   switch (firstCommand) {
@@ -69,10 +63,12 @@ async function handleCommand(message: Message): Promise<Result> {
     case '/help':
       return handleHelloCommand(message);
     case '/report':
-      return handleReportCommand(message, bucket1Users, bucket2Users, getUsers);
+      return handleReportCommand(message, storage, await storage.getCurrentPeriodStart());
     case '/list':
-      return handleAccountCommand(message, getUser);
+      return handleAccountCommand(message, storage);
+    case '/period':
+      return handleClosePeriod(message, storage);
     default:
-      return handleAddRecord(message, getUser, setUser);
+      return handleAddRecord(message, storage);
   }
 }

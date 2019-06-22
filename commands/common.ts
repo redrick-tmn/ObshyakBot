@@ -1,25 +1,10 @@
 import * as _ from 'lodash';
 import * as moment from 'moment';
-import config from '../config';
 import { Expense } from '../storage';
 import { ChatType, Message, MessageEntity, MessageEntityType } from '../telegram';
 
-const { endOfPeriodDay } = config;
-
-export function isInPeriod(expense: Expense): boolean {
-  return expense && moment(expense.date).isBetween(...getCurrentPeriod());
-}
-
-export function getCurrentPeriod(): [moment.Moment, moment.Moment] {
-  const result = moment();
-  if (result.date() <= endOfPeriodDay) {
-    result.subtract(1, 'month');
-  }
-
-  const start = result.date(endOfPeriodDay).startOf('day');
-  const end = start.clone().add(1, 'month').startOf('day');
-
-  return [start, end];
+export function isInPeriod(expense: Expense, periodStartDate: Date): boolean {
+  return expense && moment(expense.date).isAfter(periodStartDate);
 }
 
 export function getFirstCommand(botName: string, message: Message): string {

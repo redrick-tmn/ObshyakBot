@@ -3,7 +3,10 @@ import * as _ from 'lodash';
 import { handleUpdate } from './commands';
 import { ReplayToChatResult } from './commands/result';
 import { sendMessage } from './messaging';
+import { Storage } from './storage';
 import { Update } from './telegram';
+
+const storage = new Storage();
 
 export async function main(req, res): Promise<void> {
   try {
@@ -13,7 +16,7 @@ export async function main(req, res): Promise<void> {
       return;
     }
 
-    const result = await handleUpdate(update);
+    const result = await handleUpdate(update, storage);
 
     if (result instanceof ReplayToChatResult) {
       await sendMessage(result.text, result.chatId);
