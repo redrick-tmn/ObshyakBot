@@ -14,3 +14,9 @@
 .gitignore
 
 node_modules
+
+yarn.lock
+tslint.json
+tsconfig.json
+cloudbuild.yaml
+README.MD

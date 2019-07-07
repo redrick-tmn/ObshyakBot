@@ -1,0 +1,19 @@
+steps:
+# Install
+- name: 'gcr.io/cloud-builders/npm'
+  args: ['install']
+# Test
+- name: 'gcr.io/cloud-builders/npm'
+  args: ['run', 'lint']
+# Build
+- name: 'gcr.io/cloud-builders/npm'
+  args: ['run', 'build']
+# Deploy
+- name: 'gcr.io/cloud-builders/gcloud'
+  args:
+  - functions
+  - deploy
+  - ${_FUNCTION_NAME}
+  - --source=.
+  - --trigger-http
+  - --runtime=nodejs8
