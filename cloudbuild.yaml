@@ -17,3 +17,4 @@ steps:
   - --source=.
   - --trigger-http
   - --runtime=nodejs8
+  - --region=europe-west1
