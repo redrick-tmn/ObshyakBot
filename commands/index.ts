@@ -63,7 +63,7 @@ async function handleCommand(message: Message, storage: Storage): Promise<Result
     case '/help':
       return handleHelloCommand(message);
     case '/report':
-      return handleReportCommand(message, storage, await storage.getCurrentPeriodStart());
+      return handleReportCommand(message, storage, await storage.getCurrentPeriod());
     case '/list':
       return handleAccountCommand(message, storage);
     case '/period':

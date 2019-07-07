@@ -18,5 +18,12 @@ node_modules
 yarn.lock
 tslint.json
 tsconfig.json
-cloudbuild.yaml
 README.MD
+cloudbuild.yaml
+environments/DEV.yaml
+environments/PROD.yaml
+environments/ENV.yaml
+environments/DEV.yaml.enc
+environments/PROD.yaml.enc
+package-lock.json
+.editorconfig

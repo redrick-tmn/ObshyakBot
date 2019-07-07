@@ -1,3 +1,4 @@
+import { Timestamp } from '@google-cloud/firestore';
 import * as _ from 'lodash';
 import config from '../config';
 import { Storage } from '../storage';
@@ -32,12 +33,12 @@ export async function handleAddRecord(
     comment: record.comment,
     chatId: message.chat.id,
     messageId: message.message_id,
-    date: Date.now()
+    date: Timestamp.fromDate(new Date(Date.now()))
   });
 
   await storage.setUser(message.from.username, user);
 
-  const period = await storage.getCurrentPeriodStart();
+  const period = await storage.getCurrentPeriod();
   const total = _(user.expenses).filter(item => isInPeriod(item, period)).sumBy(item => item.amount);
 
   return new ReplayToChatResult(
@@ -76,7 +77,7 @@ export async function handleEditRecord(
 
   await storage.setUser(username, user);
 
-  const period = await storage.getCurrentPeriodStart();
+  const period = await storage.getCurrentPeriod();
   const total = _(user.expenses).filter(item => isInPeriod(item, period)).sumBy(item => item.amount);
 
   return new ReplayToChatResult(

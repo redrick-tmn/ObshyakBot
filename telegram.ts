@@ -17,6 +17,7 @@ export interface Message {
   text: string;
   chat: Chat;
   from: User;
+  date: number;
   entities: MessageEntity[];
 }
 

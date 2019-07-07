@@ -1,10 +1,10 @@
 import * as _ from 'lodash';
 import * as moment from 'moment';
-import { Expense } from '../storage';
+import { Expense, Period } from '../storage';
 import { ChatType, Message, MessageEntity, MessageEntityType } from '../telegram';
 
-export function isInPeriod(expense: Expense, periodStartDate: Date): boolean {
-  return expense && moment(expense.date).isAfter(periodStartDate);
+export function isInPeriod(expense: Expense, period: Period): boolean {
+  return expense && moment(expense.date.toDate()).isAfter(period.start.toDate());
 }
 
 export function getFirstCommand(botName: string, message: Message): string {

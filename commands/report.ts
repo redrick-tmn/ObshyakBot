@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { Dictionary } from 'lodash';
 import config from '../config';
-import { Storage, User } from '../storage';
+import { Period, Storage, User } from '../storage';
 import { Message } from '../telegram';
 import { reportMessage } from '../text';
 import { isInPeriod } from './common';
@@ -12,12 +12,14 @@ const { buckets: [bucket1Users, bucket2Users] } = config;
 export async function handleReportCommand(
   message: Message,
   storage: Storage,
-  periodStart: Date
+  periodStart: Period
 ): Promise<Result> {
   const users = await storage.getUsers([...bucket1Users, ...bucket2Users]);
 
   const bucket1 = _.pick(users, bucket1Users);
   const bucket2 = _.pick(users, bucket2Users);
+
+  console.log(bucket1, bucket2);
 
   const totals: [number, number] = [total(bucket1, periodStart), total(bucket2, periodStart)];
 
@@ -46,10 +48,10 @@ function owes(
   return [bucket1Owes, bucket2Owes];
 }
 
-function total(bucket: Dictionary<User>, periodStartDate: Date): number {
+function total(bucket: Dictionary<User>, period: Period): number {
   return _(bucket)
     .map<User>(item => item)
     .flatMap(item => item.expenses)
-    .filter(item => isInPeriod(item, periodStartDate))
+    .filter(item => isInPeriod(item, period))
     .sumBy(item => item.amount);
 }

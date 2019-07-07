@@ -8,6 +8,5 @@ export default {
   periodsCollectionName: process.env['PERIODS_COLLECTION_NAME'],
   botToken: process.env['BOT_TOKEN'],
   botName: process.env['BOT_NAME'],
-  firebaseConfig: JSON.parse(process.env['FIREBASE_CONFIG']),
   buckets: [bucket1Users, bucket2Users]
 };

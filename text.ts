@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import * as moment from 'moment';
-import { Expense } from './storage';
+import { Expense, Period } from './storage';
 
 const DEFAULT_FORMAT = 'DD.MM.YYYY hh:mm';
 
@@ -12,12 +12,12 @@ export function reportMessage(
   [bucket1Users, bucket2Users]: [string[], string[]],
   [bucket1Total, bucket2Total]: [number, number],
   [bucket1Owes, bucket2Owes]: [number, number],
-  periodStartDate: Date
+  period: Period
 ): string {
   const bucket1Names = joinUserNames(bucket1Users);
   const bucket2Names = joinUserNames(bucket2Users);
 
-  return `Начало отчетного периода: ${moment(periodStartDate).format(DEFAULT_FORMAT)}
+  return `Начало отчетного периода: ${moment(period.start.toDate()).format(DEFAULT_FORMAT)}
 Всего потрачено: ${bucket1Total + bucket2Total} р.
 
 Траты:
@@ -56,7 +56,7 @@ export function accountMessage(expenses: Expense[]): string {
     date,
     comment,
     amount
-  }) => `[${moment(date).format(DEFAULT_FORMAT)}] ${amount} р.${comment ? ` - ${comment}` : ''}`);
+  }) => `[${moment(date.toDate()).format(DEFAULT_FORMAT)}] ${amount} р.${comment ? ` - ${comment}` : ''}`);
 
   return `За этот отчетный период потрачено:
 

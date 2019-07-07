@@ -3,3 +3,5 @@ node_modules/
 tsc-out
 gcf-package.zip
 .vscode
+environments/DEV.yaml
+environments/PROD.yaml

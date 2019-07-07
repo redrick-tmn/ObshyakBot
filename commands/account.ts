@@ -9,7 +9,8 @@ export async function handleAccountCommand(
   storage: Storage
 ): Promise<Result> {
   const { expenses } = await storage.getUser(message.from.username);
-  const period = await storage.getCurrentPeriodStart();
+  const period = await storage.getCurrentPeriod();
+
   const expensesInPeriod = expenses.filter(item => isInPeriod(item, period));
 
   return new ReplayToChatResult(accountMessage(expensesInPeriod), message.chat.id);
