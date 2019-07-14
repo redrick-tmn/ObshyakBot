@@ -1,6 +1,7 @@
 import * as _ from 'lodash';
+import { Dictionary } from 'lodash';
 import * as moment from 'moment';
-import { Expense, Period } from './storage';
+import { Expense, Period, User } from './storage';
 
 const DEFAULT_FORMAT = 'DD.MM.YYYY hh:mm';
 
@@ -9,24 +10,24 @@ export function periodClose(periodStartDate: Date, periodEndDate: Date): string 
 }
 
 export function reportMessage(
-  [bucket1Users, bucket2Users]: [string[], string[]],
-  [bucket1Total, bucket2Total]: [number, number],
-  [bucket1Owes, bucket2Owes]: [number, number],
+  [group1Users, group2Users]: [string[], string[]],
+  [group1Total, group2Total]: [number, number],
+  [group1Owes, group2Owes]: [number, number],
   period: Period
 ): string {
-  const bucket1Names = joinUserNames(bucket1Users);
-  const bucket2Names = joinUserNames(bucket2Users);
+  const group1Names = joinUserNames(group1Users);
+  const group2Names = joinUserNames(group2Users);
 
   return `Начало отчетного периода: ${moment(period.start.toDate()).format(DEFAULT_FORMAT)}
-Всего потрачено: ${bucket1Total + bucket2Total} р.
+Всего потрачено: ${group1Total + group2Total} р.
 
 Траты:
-${bucket1Names}: ${bucket1Total} р.
-${bucket2Names}: ${bucket2Total} р.
+${group1Names}: ${group1Total} р.
+${group2Names}: ${group2Total} р.
 
 Долги:
-${bucket1Names}: ${bucket1Owes} р.
-${bucket2Names}: ${bucket2Owes} р.`;
+${group1Names}: ${group1Owes} р.
+${group2Names}: ${group2Owes} р.`;
 }
 
 export function addRecordMessage(amount: number, comment: string, total: number): string {
@@ -47,7 +48,7 @@ ${amount} р.${comment ? ` - ${comment}` : ''}
 Всего потрачено за этот отчетный период: ${total} р.`;
 }
 
-export function accountMessage(expenses: Expense[]): string {
+export function personalAccountMessage(expenses: Expense[]): string {
   if (!expenses.length) {
     return `Пока ничего не потрачено`;
   }
@@ -61,6 +62,17 @@ export function accountMessage(expenses: Expense[]): string {
   return `За этот отчетный период потрачено:
 
 ${_.join(lines, '\n')}`;
+}
+
+export function groupAccountMessage(users: Dictionary<User>): string {
+  const lines = _.map(users, user => {
+    return `
+Пользователь: ${user.id}
+
+${personalAccountMessage(user.expenses)}`;
+  });
+
+  return `${_.join(lines, '\n')}`;
 }
 
 export function notRecognizedMessage(): string {

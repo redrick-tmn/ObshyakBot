@@ -28,23 +28,26 @@ export async function handleAddRecord(
 
   const user = await storage.getUser(message.from.username);
 
-  user.expenses.push({
-    amount: record.amount,
-    comment: record.comment,
-    chatId: message.chat.id,
-    messageId: message.message_id,
-    date: Timestamp.fromDate(new Date(Date.now()))
-  });
+  if (!user.expenses.some(item => item.messageId === message.message_id)) {
+    user.expenses.push({
+      amount: record.amount,
+      comment: record.comment,
+      chatId: message.chat.id,
+      messageId: message.message_id,
+      date: Timestamp.fromDate(new Date(Date.now()))
+    });
+    await storage.setUser(message.from.username, user);
+    const period = await storage.getCurrentPeriod();
+    const total = _(user.expenses).filter(item => isInPeriod(item, period)).sumBy(item => item.amount);
 
-  await storage.setUser(message.from.username, user);
-
-  const period = await storage.getCurrentPeriod();
-  const total = _(user.expenses).filter(item => isInPeriod(item, period)).sumBy(item => item.amount);
-
-  return new ReplayToChatResult(
-    addRecordMessage(record.amount, record.comment, total),
-    message.chat.id
-  );
+    return new ReplayToChatResult(
+      addRecordMessage(record.amount, record.comment, total),
+      message.chat.id
+    );
+  } else {
+    console.log(`Message with id '${message.message_id}' was already handled`);
+    return new NoReplayResult();
+  }
 }
 
 export async function handleEditRecord(

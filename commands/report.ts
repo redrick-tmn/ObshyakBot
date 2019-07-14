@@ -7,49 +7,62 @@ import { reportMessage } from '../text';
 import { isInPeriod } from './common';
 import { ReplayToChatResult, Result } from './result';
 
-const { buckets: [bucket1Users, bucket2Users] } = config;
+const { groups: [group1Users, group2Users] } = config;
 
 export async function handleReportCommand(
   message: Message,
-  storage: Storage,
-  periodStart: Period
+  storage: Storage
 ): Promise<Result> {
-  const users = await storage.getUsers([...bucket1Users, ...bucket2Users]);
+  const period = await storage.getCurrentPeriod();
+  const users = await storage.getUsers([...group1Users, ...group2Users]);
 
-  const bucket1 = _.pick(users, bucket1Users);
-  const bucket2 = _.pick(users, bucket2Users);
+  const group1 = _.pick(users, group1Users);
+  const group2 = _.pick(users, group2Users);
 
-  console.log(bucket1, bucket2);
+  const totals = calculateTotal(
+    [group1, group2],
+    period
+  );
 
-  const totals: [number, number] = [total(bucket1, periodStart), total(bucket2, periodStart)];
+  const debts = calculateDebt(
+    [group1Users.length, group2Users.length],
+    totals
+  );
 
   const text = reportMessage(
-    [bucket1Users, bucket2Users],
+    [group1Users, group2Users],
     totals,
-    owes(
-      [bucket1Users.length, bucket2Users.length],
-      totals
-    ),
-    periodStart
+    debts,
+    period
   );
 
   return new ReplayToChatResult(text, message.chat.id);
 }
 
-function owes(
-  [bucket1Count, bucket2Count]: [number, number],
-  [bucket1Total, bucket2Total]: [number, number]
+function calculateDebt(
+  [group1Count, group2Count]: [number, number],
+  [group1Total, group2Total]: [number, number]
 ): [number, number] {
-  const part = Math.round((bucket1Total + bucket2Total) / (bucket1Count + bucket2Count));
+  const part = Math.round((group1Total + group2Total) / (group1Count + group2Count));
 
-  const bucket1Owes = Math.max(part * bucket1Count - bucket1Total, 0);
-  const bucket2Owes = Math.max(part * bucket2Count - bucket2Total, 0);
+  const group1Owes = Math.max(part * group1Count - group1Total, 0);
+  const group2Owes = Math.max(part * group2Count - group2Total, 0);
 
-  return [bucket1Owes, bucket2Owes];
+  return [group1Owes, group2Owes];
 }
 
-function total(bucket: Dictionary<User>, period: Period): number {
-  return _(bucket)
+function calculateTotal(
+  [group1, group2]: [Dictionary<User>, Dictionary<User>],
+  period: Period
+): [number, number] {
+  return [
+    calculateGroupTotal(group1, period),
+    calculateGroupTotal(group2, period)
+  ];
+}
+
+function calculateGroupTotal(group: Dictionary<User>, period: Period): number {
+  return _(group)
     .map<User>(item => item)
     .flatMap(item => item.expenses)
     .filter(item => isInPeriod(item, period))

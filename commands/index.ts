@@ -1,9 +1,10 @@
 import config from '../config';
 import { Storage } from '../storage';
 import { Message, Update } from '../telegram';
-import { handleAccountCommand } from './account';
+import { handlePersonalAccountCommand } from './account';
 import { handleClosePeriod } from './close-period';
 import { getFirstCommand } from './common';
+import { handleGroupAccountCommand } from './group-account';
 import { handleHelloCommand } from './hello';
 import { handleAddRecord, handleEditRecord } from './record';
 import { handleReportCommand } from './report';
@@ -63,9 +64,11 @@ async function handleCommand(message: Message, storage: Storage): Promise<Result
     case '/help':
       return handleHelloCommand(message);
     case '/report':
-      return handleReportCommand(message, storage, await storage.getCurrentPeriod());
-    case '/list':
-      return handleAccountCommand(message, storage);
+      return handleReportCommand(message, storage);
+    case '/personal_account':
+      return handlePersonalAccountCommand(message, storage);
+    case '/group_account':
+      return handleGroupAccountCommand(message, storage);
     case '/period':
       return handleClosePeriod(message, storage);
     default:

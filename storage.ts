@@ -67,6 +67,7 @@ export class Storage {
     if (!response.exists) {
       return emptyUser(username);
     }
+
     const user = <User>response.data();
 
     return transformUser(user);
