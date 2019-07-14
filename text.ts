@@ -24,25 +24,17 @@ export function reportMessage(
 Всего потрачено: _${group1Total + group2Total} р._
 
 Траты:
-${group1Names}: _${group1Total} р._
-${group2Names}: _${group2Total} р._
+  ${group1Names}: _${group1Total} р._
+  ${group2Names}: _${group2Total} р._
 
 Долги:
-${group1Names}: _${group1Owes} р._
-${group2Names}: _${group2Owes} р._`;
+  ${group1Names}: _${group1Owes} р._
+  ${group2Names}: _${group2Owes} р._`;
 }
 
-export function addRecordMessage(expense: Expense): string {
-  return `Принято!
-
-  ${formatExpense(expense)}
-`;
-}
-
-export function editRecordMessage(expense: Expense): string {
-  return `Обновлено!
-
-${formatExpense(expense)}
+export function upsertExpenseMessage(expense: Expense): string {
+  return `
+Принято: ${formatExpense(expense)}
 `;
 }
 
@@ -51,7 +43,7 @@ export function personalAccountMessage(expenses: Expense[]): string {
     return `Пока ничего не потрачено`;
   }
 
-  const lines = expenses.map(expense => formatExpense(expense));
+  const lines = expenses.map(expense => `  ${formatExpense(expense)}`);
 
   return `За этот отчетный период потрачено:
 ${_.join(lines, '\n')}`;
@@ -69,7 +61,7 @@ ${personalAccountMessage(user.expenses)}
 }
 
 export function notRecognizedMessage(): string {
-  return 'Извини, но я не понимаю сколько это.';
+  return 'Извини, но я не понимаю.';
 }
 
 export function helloMessage(botName: string): string {

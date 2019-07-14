@@ -24,7 +24,7 @@ export function getFirstCommand(botName: string, message: Message): string {
   return firstCommand.replace(`@${botName}`, '');
 }
 
-export function parseRecordText(recordText: string): { amount: number, comment?: string } {
+export function parseExpenseText(recordText: string): { amount: number, comment?: string } {
   const regexResult = new RegExp(/^([\-\+]?\d*)(\s(.*))?$/, 'g').exec(recordText.trim());
   if (!regexResult) {
     console.log(`'${recordText}' doesn't match regex`);
@@ -48,7 +48,7 @@ export function parseRecordText(recordText: string): { amount: number, comment?:
   return result;
 }
 
-export function getRecordText(botName: string, message: Message): string {
+export function getExpenseText(botName: string, message: Message): string {
   if (message.chat.type === ChatType.Private) {
     return message.text;
   }
