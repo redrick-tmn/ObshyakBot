@@ -1,6 +1,6 @@
 {
   "name": "obshyakbot",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Obshyak bot",
   "main": "index.js",
   "scripts": {

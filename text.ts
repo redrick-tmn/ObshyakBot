@@ -54,10 +54,9 @@ export function groupAccountMessage(users: Dictionary<User>): string {
 *Пользователь:* @${user.id}
 
 ${personalAccountMessage(user.expenses)}
-
 `);
 
-  return `${_.join(lines, '\n')}`;
+  return `${_.join(lines, '')}`;
 }
 
 export function notRecognizedMessage(): string {
