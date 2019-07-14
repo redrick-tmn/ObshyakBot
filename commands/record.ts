@@ -29,19 +29,20 @@ export async function handleAddRecord(
   const user = await storage.getUser(message.from.username);
 
   if (!user.expenses.some(item => item.messageId === message.message_id)) {
-    user.expenses.push({
+    const expense = {
       amount: record.amount,
       comment: record.comment,
       chatId: message.chat.id,
       messageId: message.message_id,
       date: Timestamp.fromDate(new Date(Date.now()))
-    });
+    };
+
+    user.expenses.push(expense);
+
     await storage.setUser(message.from.username, user);
-    const period = await storage.getCurrentPeriod();
-    const total = _(user.expenses).filter(item => isInPeriod(item, period)).sumBy(item => item.amount);
 
     return new ReplayToChatResult(
-      addRecordMessage(record.amount, record.comment, total),
+      addRecordMessage(expense),
       message.chat.id
     );
   } else {
@@ -71,20 +72,16 @@ export async function handleEditRecord(
 
   const user = await storage.getUser(username);
   const expense = user.expenses.find(item => item.chatId === chatId && item.messageId === messageId);
-  const oldAmount = expense.amount;
-  const oldComment = expense.comment;
-  if (expense) {
-    expense.amount = record.amount;
-    expense.comment = record.comment;
+
+  if (!expense) {
+    // TODO: replace with error message
+    return new NoReplayResult();
   }
 
   await storage.setUser(username, user);
 
-  const period = await storage.getCurrentPeriod();
-  const total = _(user.expenses).filter(item => isInPeriod(item, period)).sumBy(item => item.amount);
-
   return new ReplayToChatResult(
-    editRecordMessage(record.amount, record.comment, oldAmount, oldComment, total),
+    editRecordMessage(expense),
     message.chat.id
   );
 }

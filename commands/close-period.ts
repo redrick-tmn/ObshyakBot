@@ -9,7 +9,7 @@ export async function handleClosePeriod(message: Message, storage: Storage): Pro
   const start = Timestamp.fromDate(new Date(Date.now()));
   const newPeriod = await storage.startNewPeriod(start);
 
-  const messageText = periodClose(previousPeriod.start.toDate(), newPeriod.start.toDate());
+  const messageText = periodClose(previousPeriod.start, newPeriod.start);
 
   return new ReplayToChatResult(messageText, message.chat.id);
 }

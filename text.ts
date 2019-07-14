@@ -1,3 +1,4 @@
+import { Timestamp } from '@google-cloud/firestore';
 import * as _ from 'lodash';
 import { Dictionary } from 'lodash';
 import * as moment from 'moment';
@@ -5,8 +6,8 @@ import { Expense, Period, User } from './storage';
 
 const DEFAULT_FORMAT = 'DD.MM.YYYY hh:mm';
 
-export function periodClose(periodStartDate: Date, periodEndDate: Date): string {
-  return `Отчетный период c ${moment(periodStartDate).format(DEFAULT_FORMAT)} по ${moment(periodEndDate).format(DEFAULT_FORMAT)} закрыт`;
+export function periodClose(start: Timestamp, end: Timestamp): string {
+  return `Отчетный период c ${formatTimestamp(start)} по ${formatTimestamp(end)} закрыт.`;
 }
 
 export function reportMessage(
@@ -18,34 +19,31 @@ export function reportMessage(
   const group1Names = joinUserNames(group1Users);
   const group2Names = joinUserNames(group2Users);
 
-  return `Начало отчетного периода: ${moment(period.start.toDate()).format(DEFAULT_FORMAT)}
-Всего потрачено: ${group1Total + group2Total} р.
+  return `
+Начало отчетного периода: _${formatTimestamp(period.start)}_
+Всего потрачено: _${group1Total + group2Total} р._
 
 Траты:
-${group1Names}: ${group1Total} р.
-${group2Names}: ${group2Total} р.
+${group1Names}: _${group1Total} р._
+${group2Names}: _${group2Total} р._
 
 Долги:
-${group1Names}: ${group1Owes} р.
-${group2Names}: ${group2Owes} р.`;
+${group1Names}: _${group1Owes} р._
+${group2Names}: _${group2Owes} р._`;
 }
 
-export function addRecordMessage(amount: number, comment: string, total: number): string {
+export function addRecordMessage(expense: Expense): string {
   return `Принято!
-${amount} р.${comment ? ` - ${comment}` : ''}
 
-Всего потрачено за этот отчетный период: ${total} р.`;
+  ${formatExpense(expense)}
+`;
 }
 
-export function editRecordMessage(amount: number, comment: string, oldAmount: number, oldComment: string, total: number): string {
+export function editRecordMessage(expense: Expense): string {
   return `Обновлено!
-Было:
-${oldAmount} р.${oldComment ? ` - ${oldComment}` : ''}
 
-Стало:
-${amount} р.${comment ? ` - ${comment}` : ''}
-
-Всего потрачено за этот отчетный период: ${total} р.`;
+${formatExpense(expense)}
+`;
 }
 
 export function personalAccountMessage(expenses: Expense[]): string {
@@ -53,24 +51,19 @@ export function personalAccountMessage(expenses: Expense[]): string {
     return `Пока ничего не потрачено`;
   }
 
-  const lines = expenses.map(({
-    date,
-    comment,
-    amount
-  }) => `[${moment(date.toDate()).format(DEFAULT_FORMAT)}] ${amount} р.${comment ? ` - ${comment}` : ''}`);
+  const lines = expenses.map(expense => formatExpense(expense));
 
   return `За этот отчетный период потрачено:
-
 ${_.join(lines, '\n')}`;
 }
 
 export function groupAccountMessage(users: Dictionary<User>): string {
-  const lines = _.map(users, user => {
-    return `
-Пользователь: ${user.id}
+  const lines = _.map(users, user => `
+*Пользователь:* @${user.id}
 
-${personalAccountMessage(user.expenses)}`;
-  });
+${personalAccountMessage(user.expenses)}
+
+`);
 
   return `${_.join(lines, '\n')}`;
 }
@@ -95,7 +88,11 @@ export function helloMessage(botName: string): string {
 
 Посмотреть список своих трат за этот месяц можно отправив команду
 
-/list
+/personal_account
+
+Посмотреть список трат за всю группу за этот месяц можно отправив команду
+
+/group_account
 
 Сколько всего ты потратил в этом месяце, сколько тебе должны или сколько должен ты можно узнать отправив команду
 
@@ -106,4 +103,12 @@ export function helloMessage(botName: string): string {
 
 function joinUserNames(userNames: string[]): string {
   return _(userNames).map(user => `@${user}`).join(',');
+}
+
+function formatTimestamp(timestamp: Timestamp): string {
+  return moment(timestamp.toDate()).format(DEFAULT_FORMAT);
+}
+
+function formatExpense({ amount, comment, date }: Expense): string {
+  return `[${formatTimestamp(date)}] _${amount} р.${comment ? ` - ${comment}` : ''}_`;
 }

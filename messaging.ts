@@ -7,7 +7,8 @@ export async function sendMessage(text: string, chatId: string): Promise<void> {
   try {
     await axios.post(SEND_MESSAGE_URL, {
       chat_id: chatId,
-      text
+      text,
+      parse_mode: 'Markdown'
     });
   } catch (error) {
     console.error(`Unable to send the message: '${text}' to the chat: ${chatId}`);
