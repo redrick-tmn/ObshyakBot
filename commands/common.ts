@@ -1,30 +1,7 @@
 import * as _ from 'lodash';
-import * as moment from 'moment';
-import { Expense, Period } from '../storage';
-import { ChatType, Message, MessageEntity, MessageEntityType } from '../telegram';
+import { BotModel } from '../model';
 
-export function isInPeriod(expense: Expense, period: Period): boolean {
-  return expense && moment(expense.date.toDate()).isAfter(period.start.toDate());
-}
-
-export function getFirstCommand(botName: string, message: Message): string {
-  if (!message || !message.entities) {
-    return null;
-  }
-
-  const firstCommand = _(message.entities)
-    .filter(({ type }) => type === MessageEntityType.BotCommand)
-    .map(({ offset, length }) => message.text.substr(offset, length))
-    .first();
-
-  if (!firstCommand) {
-    return null;
-  }
-
-  return firstCommand.replace(`@${botName}`, '');
-}
-
-export function parseExpenseText(recordText: string): { amount: number, comment?: string } {
+export function parseExpenseText(recordText: string): { amount: number, comment?: string } | null {
   const regexResult = new RegExp(/^([\-\+]?\d*)(\s(.*))?$/, 'g').exec(recordText.trim());
   if (!regexResult) {
     console.log(`'${recordText}' doesn't match regex`);
@@ -48,31 +25,16 @@ export function parseExpenseText(recordText: string): { amount: number, comment?
   return result;
 }
 
-export function getExpenseText(botName: string, message: Message): string {
-  if (message.chat.type === ChatType.Private) {
-    return message.text;
+export function getExpenseText(botName: string, command: BotModel.Message): string | null {
+  if (command.isPrivate) {
+    return command.rawText;
   }
 
-  const firstMention = getFirstMention(botName, message);
+  const botMention = command.mentions.find(({ text }) => text === `@${botName}`);
 
-  if (firstMention) {
-    return message.text.slice(firstMention.offset + firstMention.length + 1);
+  if (botMention) {
+    return command.rawText.slice(botMention.offset + botMention.length + 1);
   } else {
     return null;
   }
-}
-
-function getFirstMention(botName: string, message: Message): MessageEntity {
-  if (!message || !message.entities) {
-    return null;
-  }
-
-  return _(message.entities)
-    .filter(({ type }) => type === MessageEntityType.Mention)
-    .map(mention => ({
-      ...mention,
-      text: message.text.substr(mention.offset, mention.length)
-    }))
-    .filter(({ text }) => text === `@${botName}`)
-    .first();
 }

@@ -3,51 +3,15 @@ import * as admin from 'firebase-admin';
 import * as _ from 'lodash';
 import { Dictionary } from 'lodash';
 import config from './config';
+import { StorageModel } from './model/storage';
 
 const { usersCollectionName, periodsCollectionName } = config;
 
 const app = admin.initializeApp();
 const database = app.firestore();
 
-export interface Expense {
-  amount: number;
-  comment: string;
-  date: Timestamp;
-  chatId: string;
-  messageId: number;
-}
-
-export interface User {
-  id: string;
-  expenses: Expense[];
-}
-
-export interface Period {
-  start: Timestamp;
-}
-
-function emptyUser(id: string): User {
-  return {
-    expenses: [],
-    id
-  };
-}
-
-function emptyPeriod(): Period {
-  return {
-    start: Timestamp.fromDate(new Date(0))
-  };
-}
-
-function transformUser(user: User): User {
-  return {
-    ...user,
-    expenses: user.expenses ? user.expenses : []
-  };
-}
-
 export class Storage {
-  async getUsers(usernames: string[]): Promise<Dictionary<User>> {
+  async getUsers(usernames: string[]): Promise<Dictionary<StorageModel.User>> {
     const response = await database.collection(usersCollectionName).get();
     if (response.empty) {
       return {};
@@ -55,30 +19,33 @@ export class Storage {
 
     return _(response.docs)
       .filter(document => usernames.includes(document.id))
-      .map(document => <User>document.data())
+      .map(document => <StorageModel.User>document.data())
       .mapKeys(user => user.id)
       .mapValues(user => user)
       .value();
   }
 
-  async getUser(username: string): Promise<User> {
+  async getUser(username: string): Promise<StorageModel.User> {
     const response = await database.collection(usersCollectionName).doc(username).get();
 
     if (!response.exists) {
-      return emptyUser(username);
+      return StorageModel.emptyUser(username);
     }
 
-    const user = <User>response.data();
+    const user = <StorageModel.User>response.data();
 
-    return transformUser(user);
+    return {
+      ...user,
+      expenses: user.expenses ? user.expenses : []
+    };
   }
 
-  async setUser(username: string, user: User): Promise<void> {
+  async setUser(username: string, user: StorageModel.User): Promise<void> {
     await database.collection(usersCollectionName).doc(username).set(user);
   }
 
-  async startNewPeriod(start: Timestamp): Promise<Period> {
-    const period: Period = {
+  async startNewPeriod(start: Timestamp): Promise<StorageModel.Period> {
+    const period: StorageModel.Period = {
       start
     };
 
@@ -87,13 +54,13 @@ export class Storage {
     return period;
   }
 
-  async getCurrentPeriod(): Promise<Period> {
+  async getCurrentPeriod(): Promise<StorageModel.Period> {
     const period = await database.collection(periodsCollectionName).orderBy('start', 'desc').limit(1).get();
 
     if (period.empty || !period.docs.length) {
-      return emptyPeriod();
+      return StorageModel.emptyPeriod();
     }
 
-    return <Period>period.docs[0].data();
+    return <StorageModel.Period>period.docs[0].data();
   }
 }

@@ -1,28 +1,26 @@
 import * as _ from 'lodash';
 import config from '../config';
+import { BotModel, StorageModel } from '../model';
 import { Storage } from '../storage';
-import { Message } from '../telegram';
 import { groupAccountMessage } from '../text';
-import { isInPeriod } from './common';
-import { ReplayToChatResult, Result } from './result';
 
 const { groups } = config;
 
 function getGroup(user: string): string[] {
-  return groups.find(group => group.includes(user));
+  return groups.find(group => group.includes(user)) || [];
 }
 
 export async function handleGroupAccountCommand(
-  message: Message,
+  command: BotModel.Message,
   storage: Storage
-): Promise<Result> {
-  const users = await storage.getUsers(getGroup(message.from.username));
+): Promise<BotModel.Result> {
+  const users = await storage.getUsers(getGroup(command.username));
   const period = await storage.getCurrentPeriod();
 
   const filtered = _.mapValues(users, user => ({
     ...user,
-    expenses: user.expenses.filter(item => isInPeriod(item, period))
+    expenses: user.expenses.filter(item => StorageModel.isInPeriod(item, period))
   }));
 
-  return new ReplayToChatResult(groupAccountMessage(filtered), message.chat.id);
+  return new BotModel.ReplayToChatResult(groupAccountMessage(filtered), command.chatId);
 }

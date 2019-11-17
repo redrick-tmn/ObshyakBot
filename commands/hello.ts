@@ -1,8 +1,7 @@
 import config from '../config';
-import { Message } from '../telegram';
+import { BotModel } from '../model';
 import { helloMessage } from '../text';
-import { ReplayToChatResult } from './result';
 
-export function handleHelloCommand(message: Message): ReplayToChatResult {
-  return new ReplayToChatResult(helloMessage(config.botName), message.chat.id);
+export function handleHelloCommand(command: BotModel.Message): BotModel.ReplayToChatResult {
+  return new BotModel.ReplayToChatResult(helloMessage(config.botName), command.chatId);
 }

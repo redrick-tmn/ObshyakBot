@@ -1,56 +1,51 @@
 import { Timestamp } from '@google-cloud/firestore';
 import * as _ from 'lodash';
 import config from '../config';
-import { Expense, Storage, User } from '../storage';
-import { Message } from '../telegram';
+import { BotModel, StorageModel } from '../model';
+import { Storage } from '../storage';
 import { notRecognizedMessage, upsertExpenseMessage } from '../text';
-import { getExpenseText as getExpenseText, parseExpenseText as parseExpenseText } from './common';
-import { NoReplayResult, ReplayToChatResult, Result } from './result';
+import { getExpenseText, parseExpenseText } from './common';
 
 const { botName } = config;
 
 export async function handleUpsertExpense(
-  message: Message,
+  message: BotModel.Message,
   storage: Storage
-): Promise<Result> {
+): Promise<BotModel.Result> {
   const expenseText = getExpenseText(botName, message);
   if (!expenseText) {
-    return new NoReplayResult();
+    return new BotModel.NoReplayResult();
   }
 
   const record = parseExpenseText(expenseText);
   if (!record) {
-    return new ReplayToChatResult(
+    return new BotModel.ReplayToChatResult(
       notRecognizedMessage(),
-      message.chat.id
+      message.chatId
     );
   }
 
-  const user = await storage.getUser(message.from.username);
-  const expense: Expense = {
+  const user = await storage.getUser(message.username);
+  const expense: StorageModel.Expense = {
     amount: record.amount,
     comment: record.comment,
-    chatId: message.chat.id,
-    messageId: message.message_id,
+    chatId: message.chatId,
+    messageId: message.messageId,
     date: Timestamp.fromMillis(message.date)
   };
 
-  const newUser: User = {
+  const newUser: StorageModel.User = {
     ...user,
-    expenses: upsertExpense(expense, user.expenses)
+    expenses: [
+      ...user.expenses.filter(item => !(item.chatId === expense.chatId && item.messageId === expense.messageId)),
+      expense
+    ]
   };
 
-  await storage.setUser(message.from.username, newUser);
+  await storage.setUser(message.username, newUser);
 
-  return new ReplayToChatResult(
+  return new BotModel.ReplayToChatResult(
     upsertExpenseMessage(expense),
-    message.chat.id
+    message.chatId
   );
-}
-
-function upsertExpense(newExpense: Expense, expenses: Expense[]): Expense[] {
-  return [
-    ...expenses.filter(item => !(item.chatId === newExpense.chatId && item.messageId === newExpense.messageId)),
-    newExpense
-  ];
 }

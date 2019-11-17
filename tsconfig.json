@@ -6,6 +6,7 @@
     "declaration": false,
     "moduleResolution": "node",
     "target": "es5",
+    "strictNullChecks": true,
     "typeRoots": [
       "node_modules/@types"
     ],

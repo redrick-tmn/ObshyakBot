@@ -1,15 +1,17 @@
 import { Timestamp } from '@google-cloud/firestore';
+import { BotModel } from '../model';
 import { Storage } from '../storage';
-import { Message } from '../telegram';
 import { periodClose } from '../text';
-import { ReplayToChatResult, Result } from './result';
 
-export async function handleClosePeriod(message: Message, storage: Storage): Promise<Result> {
+export async function handleClosePeriod(
+  command: BotModel.Message,
+  storage: Storage
+): Promise<BotModel.Result> {
   const previousPeriod = await storage.getCurrentPeriod();
-  const start = Timestamp.fromMillis(message.date);
+  const start = Timestamp.fromMillis(command.date);
   const newPeriod = await storage.startNewPeriod(start);
 
-  const messageText = periodClose(previousPeriod.start, newPeriod.start);
+  const text = periodClose(previousPeriod.start, newPeriod.start);
 
-  return new ReplayToChatResult(messageText, message.chat.id);
+  return new BotModel.ReplayToChatResult(text, command.chatId);
 }

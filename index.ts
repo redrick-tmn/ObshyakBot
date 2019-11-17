@@ -1,14 +1,14 @@
 import { handleUpdate } from './commands';
-import { ReplayToChatResult } from './commands/result';
 import { sendMessage } from './messaging';
+import { BotModel } from './model/bot';
+import { TelegramModel } from './model/telegram';
 import { Storage } from './storage';
-import { Update } from './telegram';
 
 const storage = new Storage();
 
 export async function main(req, res): Promise<void> {
   try {
-    const update = <Update>req.body;
+    const update = <TelegramModel.Update>req.body;
     if (!update) {
       res.sendStatus(200);
       return;
@@ -18,7 +18,7 @@ export async function main(req, res): Promise<void> {
 
     const result = await handleUpdate(update, storage);
 
-    if (result instanceof ReplayToChatResult) {
+    if (result instanceof BotModel.ReplayToChatResult) {
       await sendMessage(result.text, result.chatId);
     }
 

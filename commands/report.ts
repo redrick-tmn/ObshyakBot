@@ -1,18 +1,17 @@
 import * as _ from 'lodash';
 import { Dictionary } from 'lodash';
 import config from '../config';
+import { BotModel } from '../model';
 import { Period, Storage, User } from '../storage';
-import { Message } from '../telegram';
 import { reportMessage } from '../text';
 import { isInPeriod } from './common';
-import { ReplayToChatResult, Result } from './result';
 
 const { groups: [group1Users, group2Users] } = config;
 
 export async function handleReportCommand(
-  message: Message,
+  command: BotModel.Message,
   storage: Storage
-): Promise<Result> {
+): Promise<BotModel.Result> {
   const period = await storage.getCurrentPeriod();
   const users = await storage.getUsers([...group1Users, ...group2Users]);
 
@@ -36,7 +35,7 @@ export async function handleReportCommand(
     period
   );
 
-  return new ReplayToChatResult(text, message.chat.id);
+  return new BotModel.ReplayToChatResult(text, command.chatId);
 }
 
 function calculateDebt(

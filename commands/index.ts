@@ -1,52 +1,20 @@
-import config from '../config';
+import { BotModel, TelegramModel } from '../model';
 import { Storage } from '../storage';
-import { Message, Update } from '../telegram';
 import { handleClosePeriod } from './close-period';
-import { getFirstCommand } from './common';
 import { handleGroupAccountCommand } from './group-account';
 import { handleHelloCommand } from './hello';
 import { handlePersonalAccountCommand } from './personal-account';
 import { handleUpsertExpense } from './record';
 import { handleReportCommand } from './report';
-import { NoReplayResult, Result } from './result';
 
-const { botName } = config;
+export async function handleUpdate(update: TelegramModel.Update, storage: Storage): Promise<BotModel.Result> {
+  const message = BotModel.fromUpdate(update);
 
-function validateMessage(message: Message): boolean {
   if (!message) {
-    console.warn('No message given');
-
-    return false;
+    return new BotModel.NoReplayResult();
   }
 
-  if (!message.from || !message.from.username) {
-    console.warn('Username is not set');
-
-    return false;
-  }
-
-  if (!message.chat || !message.chat.id) {
-    console.warn('Chat id is not set');
-
-    return false;
-  }
-
-  return true;
-}
-
-export async function handleUpdate(update: Update, storage: Storage): Promise<Result> {
-  const { message: addedMessage, edited_message: editedMessage } = update;
-  const message = addedMessage || editedMessage || null;
-
-  if (!validateMessage(message)) {
-    return new NoReplayResult();
-  }
-
-  return handleCommand(message, storage);
-}
-
-async function handleCommand(message: Message, storage: Storage): Promise<Result> {
-  const firstCommand = getFirstCommand(botName, message);
+  const firstCommand = message.commands[0];
 
   switch (firstCommand) {
     case '/start':
