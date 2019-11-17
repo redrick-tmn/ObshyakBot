@@ -1,10 +1,9 @@
 import * as _ from 'lodash';
 import { Dictionary } from 'lodash';
 import config from '../config';
-import { BotModel } from '../model';
-import { Period, Storage, User } from '../storage';
+import { BotModel, StorageModel } from '../model';
+import { Storage } from '../storage';
 import { reportMessage } from '../text';
-import { isInPeriod } from './common';
 
 const { groups: [group1Users, group2Users] } = config;
 
@@ -51,8 +50,8 @@ function calculateDebt(
 }
 
 function calculateTotal(
-  [group1, group2]: [Dictionary<User>, Dictionary<User>],
-  period: Period
+  [group1, group2]: [Dictionary<StorageModel.User>, Dictionary<StorageModel.User>],
+  period: StorageModel.Period
 ): [number, number] {
   return [
     calculateGroupTotal(group1, period),
@@ -60,10 +59,10 @@ function calculateTotal(
   ];
 }
 
-function calculateGroupTotal(group: Dictionary<User>, period: Period): number {
+function calculateGroupTotal(group: Dictionary<StorageModel.User>, period: StorageModel.Period): number {
   return _(group)
-    .map<User>(item => item)
+    .map<StorageModel.User>(item => item)
     .flatMap(item => item.expenses)
-    .filter(item => isInPeriod(item, period))
+    .filter(item => StorageModel.isInPeriod(item, period))
     .sumBy(item => item.amount);
 }

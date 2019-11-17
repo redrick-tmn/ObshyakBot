@@ -2,7 +2,7 @@ import { Timestamp } from '@google-cloud/firestore';
 import * as _ from 'lodash';
 import { Dictionary } from 'lodash';
 import * as moment from 'moment';
-import { Expense, Period, User } from './storage';
+import { StorageModel } from './model';
 
 const DEFAULT_FORMAT = 'DD.MM.YYYY hh:mm';
 
@@ -14,7 +14,7 @@ export function reportMessage(
   [group1Users, group2Users]: [string[], string[]],
   [group1Total, group2Total]: [number, number],
   [group1Owes, group2Owes]: [number, number],
-  period: Period
+  period: StorageModel.Period
 ): string {
   const group1Names = joinUserNames(group1Users);
   const group2Names = joinUserNames(group2Users);
@@ -32,13 +32,13 @@ export function reportMessage(
   ${group2Names}: _${group2Owes} р._`;
 }
 
-export function upsertExpenseMessage(expense: Expense): string {
+export function upsertExpenseMessage(expense: StorageModel.Expense): string {
   return `
 Принято: ${formatExpense(expense)}
 `;
 }
 
-export function personalAccountMessage(expenses: Expense[]): string {
+export function personalAccountMessage(expenses: StorageModel.Expense[]): string {
   if (!expenses.length) {
     return `Пока ничего не потрачено`;
   }
@@ -49,7 +49,7 @@ export function personalAccountMessage(expenses: Expense[]): string {
 ${_.join(lines, '\n')}`;
 }
 
-export function groupAccountMessage(users: Dictionary<User>): string {
+export function groupAccountMessage(users: Dictionary<StorageModel.User>): string {
   const lines = _.map(users, user => `
 *Пользователь:* @${user.id}
 
@@ -100,6 +100,6 @@ function formatTimestamp(timestamp: Timestamp): string {
   return moment(timestamp.toDate()).format(DEFAULT_FORMAT);
 }
 
-function formatExpense({ amount, comment, date }: Expense): string {
+function formatExpense({ amount, comment, date }: StorageModel.Expense): string {
   return `[${formatTimestamp(date)}] _${amount} р.${comment ? ` - ${comment}` : ''}_`;
 }
