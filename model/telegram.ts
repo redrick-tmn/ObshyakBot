@@ -19,6 +19,7 @@ export namespace TelegramModel {
     chat: Chat;
     from: User;
     entities: MessageEntity[];
+    date: number;
   }
 
   export enum MessageEntityType {
@@ -36,6 +37,5 @@ export namespace TelegramModel {
     update_id: number;
     message: Message;
     edited_message: Message;
-    date: number;
   }
 }

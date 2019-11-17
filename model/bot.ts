@@ -51,7 +51,7 @@ export namespace BotModel {
       username: message.from.username,
       isPrivate: message.chat.type === TelegramModel.ChatType.Private,
       rawText: message.text,
-      date: update.date,
+      date: message.date,
       commands: _(message.entities)
         .filter(({ type }) => type === TelegramModel.MessageEntityType.BotCommand)
         .map(({ offset, length }) => message.text.substr(offset, length).replace(`@${botName}`, ''))
