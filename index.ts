@@ -1,5 +1,3 @@
-import * as _ from 'lodash';
-
 import { handleUpdate } from './commands';
 import { ReplayToChatResult } from './commands/result';
 import { sendMessage } from './messaging';

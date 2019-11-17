@@ -32,7 +32,7 @@ export async function handleUpsertExpense(
     comment: record.comment,
     chatId: message.chat.id,
     messageId: message.message_id,
-    date: Timestamp.fromDate(new Date(Date.now()))
+    date: Timestamp.fromMillis(message.date)
   };
 
   const newUser: User = {
