@@ -7,7 +7,7 @@ import { StorageModel } from './model';
 
 const { timezone } = config;
 
-const DEFAULT_FORMAT = 'DD.MM.YYYY hh:mm';
+const DEFAULT_FORMAT = 'DD.MM.YYYY HH:mm';
 
 export function periodClose(start: Timestamp, end: Timestamp): string {
   return `Отчетный период c ${formatTimestamp(start)} по ${formatTimestamp(end)} закрыт.`;
