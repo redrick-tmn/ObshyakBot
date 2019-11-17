@@ -14,6 +14,8 @@ export async function main(req, res): Promise<void> {
       return;
     }
 
+    console.log('Update received', JSON.stringify(update));
+
     const result = await handleUpdate(update, storage);
 
     if (result instanceof ReplayToChatResult) {
