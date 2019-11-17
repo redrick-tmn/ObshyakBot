@@ -8,5 +8,6 @@ export default {
   periodsCollectionName: process.env['PERIODS_COLLECTION_NAME'] || '',
   botToken: process.env['BOT_TOKEN'] || '',
   botName: process.env['BOT_NAME'] || '',
-  groups: [group1Users, group2Users]
+  groups: [group1Users, group2Users],
+  timezone: 'Europe/Moscow'
 };

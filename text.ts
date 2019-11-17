@@ -1,8 +1,11 @@
 import { Timestamp } from '@google-cloud/firestore';
 import * as _ from 'lodash';
 import { Dictionary } from 'lodash';
-import * as moment from 'moment';
+import * as moment from 'moment-timezone';
+import config from './config';
 import { StorageModel } from './model';
+
+const { timezone } = config;
 
 const DEFAULT_FORMAT = 'DD.MM.YYYY hh:mm';
 
@@ -97,7 +100,7 @@ function joinUserNames(userNames: string[]): string {
 }
 
 function formatTimestamp(timestamp: Timestamp): string {
-  return moment(timestamp.toDate()).format(DEFAULT_FORMAT);
+  return moment(timestamp.toDate()).tz(timezone).format(DEFAULT_FORMAT);
 }
 
 function formatExpense({ amount, comment, date }: StorageModel.Expense): string {
