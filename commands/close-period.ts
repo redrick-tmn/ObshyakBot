@@ -8,7 +8,7 @@ export async function handleClosePeriod(
   storage: Storage
 ): Promise<BotModel.Result> {
   const previousPeriod = await storage.getCurrentPeriod();
-  const start = Timestamp.fromMillis(command.date);
+  const start = Timestamp.fromMillis(command.date * 1000);
   const newPeriod = await storage.startNewPeriod(start);
 
   const text = periodClose(previousPeriod.start, newPeriod.start);

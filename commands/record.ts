@@ -31,7 +31,7 @@ export async function handleUpsertExpense(
     comment: record.comment,
     chatId: message.chatId,
     messageId: message.messageId,
-    date: Timestamp.fromMillis(message.date)
+    date: Timestamp.fromMillis(message.date * 1000)
   };
 
   const newUser: StorageModel.User = {
